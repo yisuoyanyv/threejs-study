@@ -7,7 +7,7 @@ import gsap from "gsap";
 import * as dat from "dat.gui";
 import { color } from "dat.gui";
 
-// 目标：AO环境遮挡贴图
+// 目标：掌握轻量级图形界面
 
 // 1、创建场景
 const scene = new THREE.Scene();
@@ -24,48 +24,58 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10);
 scene.add(camera);
 
-// 导入纹理
-const textureLoader = new THREE.TextureLoader();
-const doorColorTexture = textureLoader.load('./textures/door/color.jpg');
-
-const doorAplhaTexture = textureLoader.load("./textures/door/alpha.jpg");
-const doorAoTexture = textureLoader.load("./textures/door/ambientOcclusion.jpg");
-
-console.log(doorColorTexture);
 // 添加物体
+// 创建几何体
 const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-// 材质
-const basicMaterial = new THREE.MeshBasicMaterial({
-  color: "#ffff00",
-  map: doorColorTexture,
-  alphaMap: doorAplhaTexture,
-  transparent: true,
-  //设置环境遮挡贴图
-  aoMap: doorAoTexture,
-  aoMapIntensity: 1,
-  // opacity: 0.8,
-  // side: THREE.DoubleSide
+const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+// 根据几何体和材质创建物体
+const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
-});
-const cube = new THREE.Mesh(cubeGeometry, basicMaterial);
+// 修改物体的位置
+// cube.position.set(5, 0, 0);
+// cube.position.x = 3;
+// 缩放
+// cube.scale.set(3, 2, 1);
+// cube.scale.x = 5;
+// 旋转
+cube.rotation.set(Math.PI / 4, 0, 0, "XZY");
+
+// 将几何体添加到场景中
 scene.add(cube);
-// 给cube添加第二组uv
-cubeGeometry.setAttribute(
-  "uv2",
- new THREE.BufferAttribute(cubeGeometry.attributes.uv.array, 2));
 
-// 添加平面
-const planeGeometry = new THREE.PlaneBufferGeometry(1, 1);
-const plane = new THREE.Mesh(
-  planeGeometry,
-  basicMaterial
-);
-plane.position.set(3, 0, 0);
-// 给平面设置第二组uv
-planeGeometry.setAttribute(
-  "uv2",
- new THREE.BufferAttribute(planeGeometry.attributes.uv.array, 2));
-scene.add(plane);
+console.log(cube);
+const gui = new dat.GUI();
+gui
+  .add(cube.position, "x")
+  .min(0)
+  .max(5)
+  .step(0.01)
+  .name("移动x轴")
+  .onChange((value) => {
+    console.log("值被修改：", value);
+  })
+  .onFinishChange((value) => {
+    console.log("完全停下来:", value);
+  });
+//   修改物体的颜色
+const params = {
+  color: "#ffff00",
+  fn: () => {
+    //   让立方体运动起来
+    gsap.to(cube.position, { x: 5, duration: 2, yoyo: true, repeat: -1 });
+  },
+};
+gui.addColor(params, "color").onChange((value) => {
+  console.log("值被修改：", value);
+  cube.material.color.set(value);
+});
+// 设置选项框
+gui.add(cube, "visible").name("是否显示");
+
+var folder = gui.addFolder("设置立方体");
+folder.add(cube.material, "wireframe");
+// 设置按钮点击触发某个事件
+folder.add(params, "fn").name("立方体运动");
 
 // 初始化渲染器
 const renderer = new THREE.WebGLRenderer();
