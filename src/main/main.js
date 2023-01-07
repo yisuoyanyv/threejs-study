@@ -9,7 +9,7 @@ import { color } from "dat.gui";
 import {RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
 
 
-// 目标：灯光与阴影的关系与设置
+// 目标：阴影的属性
 
 // 1. 材质要满足能够对光照有反应
 // 2. 设置渲染器开启阴影的计算 renderer.shasowMap.enabled = true;
@@ -67,6 +67,8 @@ scene.add(light);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 directionalLight.position.set(10, 10, 10);
 directionalLight.castShadow = true;
+
+// 设置yi
 scene.add(directionalLight);
 
 // 初始化渲染器
