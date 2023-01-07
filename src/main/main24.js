@@ -6,16 +6,8 @@ import gsap from "gsap";
 // 导入dat.gui
 import * as dat from "dat.gui";
 import { color } from "dat.gui";
-import {RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
 
-
-// 目标：灯光与阴影的关系与设置
-
-// 1. 材质要满足能够对光照有反应
-// 2. 设置渲染器开启阴影的计算 renderer.shasowMap.enabled = true;
-// 3. 设置光照投射阴影 directonalLight.castShadow = true;
-// 4. 设置物体投射阴影 sphere.castShadow = true;
-// 5. 设置物体接收阴影 plane.receiveShadow =true;
+// 目标：环境贴图
 
 // 1、创建场景
 const scene = new THREE.Scene();
@@ -32,32 +24,63 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10);
 scene.add(camera);
 
+var div = document.createElement("div");
+div.style.width = "200px";
+div.style.height = "200px";
+div.style.position = "fixed";
+div.style.right = 0;
+div.style.right = 0;
+div.style.top = 0;
+div.style.color = "#fff";
+document.body.appendChild(div);
+
+let event = {
+
+}
+// 单张纹理图的加载
+event.onLoad = function () {
+  console.log("图片加载完成");
+};
+event.onProgress = function (url,num, total) {
+
+  console.log("图片加载完成",url);
+  console.log("图片加载进度",num);
+  console.log("图片总数",total);
+  let value = (num / total*100).toFixed(2)+"%";
+  console.log("加载进度百分比：",value);
+  div.innerHTML = value;
+};
+
+event.onError = function (e) {
+  console.log(e);
+  console.log("图片加载错误");
+};
+
+// 设置加载管理器
+const loadingManager = new THREE.LoadingManager(
+  event.onLoad, event.onProgress, event.onError
+);
+// 设置cube纹理加载器
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+const envMapTexture = cubeTextureLoader.load([
+  "textures/environmentMaps/1/px.jpg",
+  "textures/environmentMaps/1/nx.jpg",
+  "textures/environmentMaps/1/py.jpg",
+  "textures/environmentMaps/1/ny.jpg",
+  "textures/environmentMaps/1/pz.jpg",
+  "textures/environmentMaps/1/nz.jpg",
+]);
 
 const sphereGeometry = new THREE.SphereBufferGeometry(1,20,20);
 const material = new THREE.MeshStandardMaterial({
-  // metalness:0.7,
-  // roughness: 0.1, 
-  // // envMap: envMapTexture,
+  metalness:0.7,
+  roughness: 0.1, 
+  envMap: envMapTexture,
 });
 const sphere = new THREE.Mesh(sphereGeometry,material);
-// 投射阴影
-sphere.castShadow = true;
 scene.add(sphere);
 
-// 创建平面
-const planeGeometry = new THREE.PlaneBufferGeometry(10,10);
-const plane = new THREE.Mesh(planeGeometry, material);
-plane.position.set(0,-1,0);
-plane.rotation.x = -Math.PI / 2;  // 如果不旋转，只能看到背面
-// 接收阴影
-plane.receiveShadow =  true;
-scene.add(plane);
 
-
-// // 给场景添加背景
-// scene.background = envMapTexture;
-// // 给场景所有物体添加默认的环境贴图
-// scene.environment = envMapTexture;
 
 // 灯光  
 // 环境光
@@ -66,16 +89,12 @@ scene.add(light);
 // 直线光源
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 directionalLight.position.set(10, 10, 10);
-directionalLight.castShadow = true;
 scene.add(directionalLight);
 
 // 初始化渲染器
 const renderer = new THREE.WebGLRenderer();
 // 设置渲染的尺寸大小
 renderer.setSize(window.innerWidth, window.innerHeight);
-// 开启场景中的阴影贴图
-renderer.shadowMap.enabled = true;
-
 // console.log(renderer);
 // 将webgl渲染的canvas内容添加到body
 document.body.appendChild(renderer.domElement);
