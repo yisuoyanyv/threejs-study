@@ -79,6 +79,8 @@ const material = new THREE.MeshStandardMaterial({
 });
 const sphere = new THREE.Mesh(sphereGeometry,material);
 scene.add(sphere);
+scene.background = envMapTexture;
+scene.envMap=envMapTexture;
 
 
 

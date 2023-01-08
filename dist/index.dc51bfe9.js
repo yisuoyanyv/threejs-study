@@ -142,13 +142,13 @@
       this[globalName] = mainExports;
     }
   }
-})({"beqKc":[function(require,module,exports) {
+})({"3VfUc":[function(require,module,exports) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
-module.bundle.HMR_BUNDLE_ID = "9511eb86246235aa";
+module.bundle.HMR_BUNDLE_ID = "accd2dbfdc51bfe9";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, chrome, browser, globalThis, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -531,7 +531,7 @@ function hmrAcceptRun(bundle, id) {
     acceptedAssets[id] = true;
 }
 
-},{}],"3UfiP":[function(require,module,exports) {
+},{}],"TPvWX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _three = require("three");
 // 导入轨道控制器
@@ -542,7 +542,12 @@ var _gsapDefault = parcelHelpers.interopDefault(_gsap);
 // 导入dat.gui
 var _datGui = require("dat.gui");
 var _rgbeloader = require("three/examples/jsm/loaders/RGBELoader");
-// 目标：点光源
+// 目标：灯光与阴影的关系与设置
+// 1. 材质要满足能够对光照有反应
+// 2. 设置渲染器开启阴影的计算 renderer.shasowMap.enabled = true;
+// 3. 设置光照投射阴影 directonalLight.castShadow = true;
+// 4. 设置物体投射阴影 sphere.castShadow = true;
+// 5. 设置物体接收阴影 plane.receiveShadow =true;
 // 1、创建场景
 const scene = new _three.Scene();
 // 2、创建相机
@@ -558,7 +563,7 @@ const sphere = new _three.Mesh(sphereGeometry, material);
 sphere.castShadow = true;
 scene.add(sphere);
 // 创建平面
-const planeGeometry = new _three.PlaneBufferGeometry(50, 50);
+const planeGeometry = new _three.PlaneBufferGeometry(10, 10);
 const plane = new _three.Mesh(planeGeometry, material);
 plane.position.set(0, -1, 0);
 plane.rotation.x = -Math.PI / 2; // 如果不旋转，只能看到背面
@@ -573,33 +578,17 @@ scene.add(plane);
 // 环境光
 const light = new _three.AmbientLight(0xffffff, 0.9); // soft white light
 scene.add(light);
-const smallBall = new _three.Mesh(new _three.SphereBufferGeometry(0.1, 20, 20), new _three.MeshBasicMaterial({
-    color: 0xff0000
-}));
-smallBall.position.set(2, 2, 2);
 // 直线光源
-const pointLight = new _three.PointLight(0xff0000, 1);
-// pointLight.position.set(2, 2, 2);
-pointLight.castShadow = true;
-pointLight.intensity = 2;
-// 设置阴影贴图模糊度
-pointLight.shadow.radius = 20; //单位像素
-//  设置阴影贴图的分辨率
-pointLight.shadow.mapSize.set(512, 515); //影子更细腻
-// 设置透视相机的属性
-smallBall.add(pointLight);
-scene.add(smallBall);
-const gui = new _datGui.GUI();
-gui.add(pointLight.position, "x").min(-5).max(5).step(0.1);
-gui.add(pointLight, "distance").min(0).max(10).step(0.001);
-gui.add(pointLight, "decay").min(0).max(5).step(0.01);
+const directionalLight = new _three.DirectionalLight(0xffffff, 0.5);
+directionalLight.position.set(10, 10, 10);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
 // 初始化渲染器
 const renderer = new _three.WebGLRenderer();
 // 设置渲染的尺寸大小
 renderer.setSize(window.innerWidth, window.innerHeight);
 // 开启场景中的阴影贴图
 renderer.shadowMap.enabled = true;
-renderer.physicallyCorrectLights = true;
 // console.log(renderer);
 // 将webgl渲染的canvas内容添加到body
 document.body.appendChild(renderer.domElement);
@@ -624,10 +613,6 @@ window.addEventListener("dblclick", ()=>{
 //   console.log(fullScreenElement);
 });
 function render() {
-    let time = clock.getElapsedTime();
-    smallBall.position.x = Math.sin(time) * 3;
-    smallBall.position.z = Math.cos(time) * 3;
-    smallBall.position.y = 2 + Math.sin(time * 10) / 2;
     controls.update();
     renderer.render(scene, camera);
     //   渲染下一帧的时候就会调用render函数
@@ -37202,6 +37187,6 @@ class RGBELoader extends (0, _three.DataTextureLoader) {
     }
 }
 
-},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["beqKc","3UfiP"], "3UfiP", "parcelRequire1f17")
+},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["3VfUc","TPvWX"], "TPvWX", "parcelRequire1f17")
 
-//# sourceMappingURL=index.246235aa.js.map
+//# sourceMappingURL=index.dc51bfe9.js.map

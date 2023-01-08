@@ -7,15 +7,9 @@ import gsap from "gsap";
 import * as dat from "dat.gui";
 import { color } from "dat.gui";
 import {RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
-// 加载hdr环境图
-const rgbeLoader = new RGBELoader();
-rgbeLoader.loadAsync('textures/hdr/004.hdr').then((texture)=>{
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  scene.background = texture;
-  scene.environment = texture;
-});
 
-// 目标：经纬线映射贴图与HDR
+
+// 目标：详解聚光灯各种属性
 
 // 1、创建场景
 const scene = new THREE.Scene();
@@ -32,80 +26,87 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10);
 scene.add(camera);
 
-var div = document.createElement("div");
-div.style.width = "200px";
-div.style.height = "200px";
-div.style.position = "fixed";
-div.style.right = 0;
-div.style.right = 0;
-div.style.top = 0;
-div.style.color = "#fff";
-document.body.appendChild(div);
-
-let event = {
-
-}
-// 单张纹理图的加载
-event.onLoad = function () {
-  console.log("图片加载完成");
-};
-event.onProgress = function (url,num, total) {
-
-  console.log("图片加载完成",url);
-  console.log("图片加载进度",num);
-  console.log("图片总数",total);
-  let value = (num / total*100).toFixed(2)+"%";
-  console.log("加载进度百分比：",value);
-  div.innerHTML = value;
-};
-
-event.onError = function (e) {
-  console.log(e);
-  console.log("图片加载错误");
-};
-
-// 设置加载管理器
-const loadingManager = new THREE.LoadingManager(
-  event.onLoad, event.onProgress, event.onError
-);
-// 设置cube纹理加载器
-const cubeTextureLoader = new THREE.CubeTextureLoader();
-const envMapTexture = cubeTextureLoader.load([
-  "textures/environmentMaps/1/px.jpg",
-  "textures/environmentMaps/1/nx.jpg",
-  "textures/environmentMaps/1/py.jpg",
-  "textures/environmentMaps/1/ny.jpg",
-  "textures/environmentMaps/1/pz.jpg",
-  "textures/environmentMaps/1/nz.jpg",
-]);
 
 const sphereGeometry = new THREE.SphereBufferGeometry(1,20,20);
 const material = new THREE.MeshStandardMaterial({
-  metalness:0.7,
-  roughness: 0.1, 
-  // envMap: envMapTexture,
+  // metalness:0.7,
+  // roughness: 0.1, 
+  // // envMap: envMapTexture,
 });
 const sphere = new THREE.Mesh(sphereGeometry,material);
+// 投射阴影
+sphere.castShadow = true;
 scene.add(sphere);
 
-// 给场景添加背景
-scene.background = envMapTexture;
-// 给场景所有物体添加默认的环境贴图
-scene.environment = envMapTexture;
+// 创建平面
+const planeGeometry = new THREE.PlaneBufferGeometry(50,50);
+const plane = new THREE.Mesh(planeGeometry, material);
+plane.position.set(0,-1,0);
+plane.rotation.x = -Math.PI / 2;  // 如果不旋转，只能看到背面
+// 接收阴影
+plane.receiveShadow =  true;
+scene.add(plane);
+
+
+// // 给场景添加背景
+// scene.background = envMapTexture;
+// // 给场景所有物体添加默认的环境贴图
+// scene.environment = envMapTexture;
 
 // 灯光  
 // 环境光
 const light = new THREE.AmbientLight(0xffffff, 0.9); // soft white light
 scene.add(light);
 // 直线光源
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLight.position.set(10, 10, 10);
-scene.add(directionalLight);
+const spotlLight = new THREE.SpotLight(0xffffff, 0.5);
+spotlLight.position.set(5, 5, 5);
+spotlLight.castShadow = true;
+spotlLight.intensity = 2;
+// 设置阴影贴图模糊度
+spotlLight.shadow.radius =20; //单位像素
+//  设置阴影贴图的分辨率
+spotlLight.shadow.mapSize.set(4096,4096); //影子更细腻
+spotlLight.target = sphere;
+spotlLight.angle = Math.PI / 6;
+spotlLight.distance = 0;
+spotlLight.penumbra = 0;
+spotlLight.decay = 0; // 需要设置渲染器生效
+// 设置透视相机的属性
 
+
+scene.add(spotlLight);
+const gui = new dat.GUI();
+gui.add(sphere.position,"x")
+    .min(-5)
+    .max(5)
+    .step(0.1);
+
+gui.add(spotlLight,"angle")
+.min(0)
+.max(Math.PI / 2)
+.step(0.01);
+gui.add(spotlLight,"distance")
+.min(0)
+.max(30)
+.step(0.1);
+
+gui.add(spotlLight,"penumbra")
+.min(0)
+.max(1)
+.step(0.1);
+
+gui.add(spotlLight,"decay")
+.min(0)
+.max(5)
+.step(0.01);
 // 初始化渲染器
 const renderer = new THREE.WebGLRenderer();
 // 设置渲染的尺寸大小
 renderer.setSize(window.innerWidth, window.innerHeight);
+// 开启场景中的阴影贴图
+renderer.shadowMap.enabled = true;
+renderer.physicallyCorrectLights = true;
+
 // console.log(renderer);
 // 将webgl渲染的canvas内容添加到body
 document.body.appendChild(renderer.domElement);

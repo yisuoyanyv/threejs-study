@@ -142,13 +142,13 @@
       this[globalName] = mainExports;
     }
   }
-})({"beqKc":[function(require,module,exports) {
+})({"gSKSt":[function(require,module,exports) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
-module.bundle.HMR_BUNDLE_ID = "9511eb86246235aa";
+module.bundle.HMR_BUNDLE_ID = "869c1b0fc940bdfd";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, chrome, browser, globalThis, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -531,7 +531,7 @@ function hmrAcceptRun(bundle, id) {
     acceptedAssets[id] = true;
 }
 
-},{}],"3UfiP":[function(require,module,exports) {
+},{}],"6FDDG":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _three = require("three");
 // 导入轨道控制器
@@ -542,7 +542,14 @@ var _gsapDefault = parcelHelpers.interopDefault(_gsap);
 // 导入dat.gui
 var _datGui = require("dat.gui");
 var _rgbeloader = require("three/examples/jsm/loaders/RGBELoader");
-// 目标：点光源
+// 加载hdr环境图
+const rgbeLoader = new (0, _rgbeloader.RGBELoader)();
+rgbeLoader.loadAsync("textures/hdr/004.hdr").then((texture)=>{
+    texture.mapping = _three.EquirectangularReflectionMapping;
+    scene.background = texture;
+    scene.environment = texture;
+});
+// 目标：经纬线映射贴图与HDR
 // 1、创建场景
 const scene = new _three.Scene();
 // 2、创建相机
@@ -550,56 +557,67 @@ const camera = new _three.PerspectiveCamera(75, window.innerWidth / window.inner
 // 设置相机位置
 camera.position.set(0, 0, 10);
 scene.add(camera);
+var div = document.createElement("div");
+div.style.width = "200px";
+div.style.height = "200px";
+div.style.position = "fixed";
+div.style.right = 0;
+div.style.right = 0;
+div.style.top = 0;
+div.style.color = "#fff";
+document.body.appendChild(div);
+let event = {};
+// 单张纹理图的加载
+event.onLoad = function() {
+    console.log("图片加载完成");
+};
+event.onProgress = function(url, num, total) {
+    console.log("图片加载完成", url);
+    console.log("图片加载进度", num);
+    console.log("图片总数", total);
+    let value = (num / total * 100).toFixed(2) + "%";
+    console.log("加载进度百分比：", value);
+    div.innerHTML = value;
+};
+event.onError = function(e) {
+    console.log(e);
+    console.log("图片加载错误");
+};
+// 设置加载管理器
+const loadingManager = new _three.LoadingManager(event.onLoad, event.onProgress, event.onError);
+// 设置cube纹理加载器
+const cubeTextureLoader = new _three.CubeTextureLoader();
+const envMapTexture = cubeTextureLoader.load([
+    "textures/environmentMaps/1/px.jpg",
+    "textures/environmentMaps/1/nx.jpg",
+    "textures/environmentMaps/1/py.jpg",
+    "textures/environmentMaps/1/ny.jpg",
+    "textures/environmentMaps/1/pz.jpg",
+    "textures/environmentMaps/1/nz.jpg"
+]);
 const sphereGeometry = new _three.SphereBufferGeometry(1, 20, 20);
 const material = new _three.MeshStandardMaterial({
+    metalness: 0.7,
+    roughness: 0.1
 });
 const sphere = new _three.Mesh(sphereGeometry, material);
-// 投射阴影
-sphere.castShadow = true;
 scene.add(sphere);
-// 创建平面
-const planeGeometry = new _three.PlaneBufferGeometry(50, 50);
-const plane = new _three.Mesh(planeGeometry, material);
-plane.position.set(0, -1, 0);
-plane.rotation.x = -Math.PI / 2; // 如果不旋转，只能看到背面
-// 接收阴影
-plane.receiveShadow = true;
-scene.add(plane);
-// // 给场景添加背景
-// scene.background = envMapTexture;
-// // 给场景所有物体添加默认的环境贴图
-// scene.environment = envMapTexture;
+// 给场景添加背景
+scene.background = envMapTexture;
+// 给场景所有物体添加默认的环境贴图
+scene.environment = envMapTexture;
 // 灯光  
 // 环境光
 const light = new _three.AmbientLight(0xffffff, 0.9); // soft white light
 scene.add(light);
-const smallBall = new _three.Mesh(new _three.SphereBufferGeometry(0.1, 20, 20), new _three.MeshBasicMaterial({
-    color: 0xff0000
-}));
-smallBall.position.set(2, 2, 2);
 // 直线光源
-const pointLight = new _three.PointLight(0xff0000, 1);
-// pointLight.position.set(2, 2, 2);
-pointLight.castShadow = true;
-pointLight.intensity = 2;
-// 设置阴影贴图模糊度
-pointLight.shadow.radius = 20; //单位像素
-//  设置阴影贴图的分辨率
-pointLight.shadow.mapSize.set(512, 515); //影子更细腻
-// 设置透视相机的属性
-smallBall.add(pointLight);
-scene.add(smallBall);
-const gui = new _datGui.GUI();
-gui.add(pointLight.position, "x").min(-5).max(5).step(0.1);
-gui.add(pointLight, "distance").min(0).max(10).step(0.001);
-gui.add(pointLight, "decay").min(0).max(5).step(0.01);
+const directionalLight = new _three.DirectionalLight(0xffffff, 0.5);
+directionalLight.position.set(10, 10, 10);
+scene.add(directionalLight);
 // 初始化渲染器
 const renderer = new _three.WebGLRenderer();
 // 设置渲染的尺寸大小
 renderer.setSize(window.innerWidth, window.innerHeight);
-// 开启场景中的阴影贴图
-renderer.shadowMap.enabled = true;
-renderer.physicallyCorrectLights = true;
 // console.log(renderer);
 // 将webgl渲染的canvas内容添加到body
 document.body.appendChild(renderer.domElement);
@@ -624,10 +642,6 @@ window.addEventListener("dblclick", ()=>{
 //   console.log(fullScreenElement);
 });
 function render() {
-    let time = clock.getElapsedTime();
-    smallBall.position.x = Math.sin(time) * 3;
-    smallBall.position.z = Math.cos(time) * 3;
-    smallBall.position.y = 2 + Math.sin(time * 10) / 2;
     controls.update();
     renderer.render(scene, camera);
     //   渲染下一帧的时候就会调用render函数
@@ -37202,6 +37216,6 @@ class RGBELoader extends (0, _three.DataTextureLoader) {
     }
 }
 
-},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["beqKc","3UfiP"], "3UfiP", "parcelRequire1f17")
+},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gSKSt","6FDDG"], "6FDDG", "parcelRequire1f17")
 
-//# sourceMappingURL=index.246235aa.js.map
+//# sourceMappingURL=index.c940bdfd.js.map
